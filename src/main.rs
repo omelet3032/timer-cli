@@ -28,8 +28,9 @@ async fn run_timer(timer: &mut Timer) {
         tokio_select! ??
      */
 
+    timer.start();
+    println!("{}", timer);
     loop {
-        timer.start();
 
         tokio::select! {
 
