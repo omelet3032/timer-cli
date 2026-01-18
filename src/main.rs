@@ -114,11 +114,10 @@ enum CustomError {
 enum TimerDuration {
     A30,
     B60,
-    C90
+    C90,
 }
 
 impl FromStr for TimerDuration {
-
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -126,12 +125,12 @@ impl FromStr for TimerDuration {
             "1" => Ok(TimerDuration::A30),
             "2" => Ok(TimerDuration::B60),
             "3" => Ok(TimerDuration::C90),
-            _ => Err(())
+            _ => Err(()),
         }
     }
 }
 
-async fn run_setting(work_duration:Duration) -> Result<Duration, CustomError> {
+async fn run_setting(mut work_duration: Duration) -> Result<Duration, CustomError> {
     println!("시간을 선택해주세요. (안할시 기본값 25분");
     println!("1) 25분 2) 30분 3)60분");
 
@@ -144,18 +143,14 @@ async fn run_setting(work_duration:Duration) -> Result<Duration, CustomError> {
         if reader.read_line(&mut input).await.is_ok() {
             work_duration = match input.trim().parse::<TimerDuration>() {
                 TimerDuration::A30 => {
-                 Duration::from_mins(30)
+                    Duration::from_mins(30)
                 },
-                TimerDuration::B60 => {
-                    Duration::from_mins(60)
-                },
-                TimerDuration::C90 => {
-                    Duration::from_mins(90)
-                },
+                TimerDuration::B60 => Duration::from_mins(60),
+                TimerDuration::C90 => Duration::from_mins(90),
                 _ => {}
             };
         }
     }
 
-    Ok(work_duration)
+    // Ok(work_duration)
 }
