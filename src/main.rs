@@ -95,7 +95,7 @@ async fn run_timer(timer: &mut Timer) {
                         _ => println!("알 수 없는 명령: {}", command),
                     }
                 }
-                input.clear()달
+                input.clear();
             }
         }
     }
@@ -137,18 +137,33 @@ async fn run_setting(mut work_duration: Duration) -> Result<Duration, CustomErro
     let mut reader = BufReader::new(io::stdin());
     let mut input = String::new();
 
+
     loop {
         input.clear();
 
+        if reader.read_line(&mut input).await.is_err() {
+            return Err(CustomError::InputError);
+        }
+
         if reader.read_line(&mut input).await.is_ok() {
-            work_duration = match input.trim().parse::<TimerDuration>() {
-                TimerDuration::A30 => {
-                    Duration::from_mins(30)
+            // parse()에 Result<F, F::Err>로 정의되어있다. 왜 이걸 제대로 보지 않았을까..
+            match input.trim().parse::<TimerDuration>() {
+                Ok(duration_enum) => {
+                    let new_duration = match duration_enum {
+                        TimerDuration::A30 => Duration::from_secs(25*60),
+                        TimerDuration::B60 => Duration::from_secs(60*60),
+                        TimerDuration::C90 => Duration::from_secs(90*60),
+                    };
+                    return Ok(new_duration);
+                    
                 },
-                TimerDuration::B60 => Duration::from_mins(60),
-                TimerDuration::C90 => Duration::from_mins(90),
-                _ => {}
-            };
+                Err(_) => {
+
+                }
+                
+
+            }
+           
         }
     }
 
