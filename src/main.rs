@@ -10,17 +10,17 @@ use tokio::io::{self, AsyncBufReadExt, BufReader};
 
 #[tokio::main]
 async fn main() {
-    let work_duration = Duration::from_secs(10);
+    let mut work_duration = Duration::from_secs(10);
 
     let mut timer = Timer::new(work_duration);
 
-    println!("timer-cli start");
-    println!("메뉴 : 1)️timer 2)setting");
-
+    
     let mut reader = BufReader::new(io::stdin());
     let mut input = String::new();
-
+    
     loop {
+        println!("timer-cli start");
+        println!("메뉴 : 1)️timer 2)setting");
         input.clear();
 
         if reader.read_line(&mut input).await.is_ok() {
@@ -29,7 +29,15 @@ async fn main() {
                     run_timer(&mut timer).await;
                 }
                 "2" => {
-                    run_setting().await;
+                    let result = run_setting(work_duration).await;
+                    match result {
+                        Ok(new_duration) => {
+                            timer = Timer::new(new_duration);
+                        },
+                        Err(e) => {
+                            println!("에러 : {:?}", e);
+                        }
+                    }
                 }
                 _ => {
                     println!("다시 입력해주세요");
@@ -107,6 +115,7 @@ async fn run_timer(timer: &mut Timer) {
         work_duration을 사용자가 입력으로 설정한후 그 값을 main()에 전달
 */
 
+#[derive(Debug)]
 enum CustomError {
     InputError,
 }
@@ -137,7 +146,6 @@ async fn run_setting(mut work_duration: Duration) -> Result<Duration, CustomErro
     let mut reader = BufReader::new(io::stdin());
     let mut input = String::new();
 
-
     loop {
         input.clear();
 
@@ -150,22 +158,20 @@ async fn run_setting(mut work_duration: Duration) -> Result<Duration, CustomErro
             match input.trim().parse::<TimerDuration>() {
                 Ok(duration_enum) => {
                     let new_duration = match duration_enum {
-                        TimerDuration::A30 => Duration::from_secs(25*60),
+                        TimerDuration::A30 => Duration::from_secs(30*60),
                         TimerDuration::B60 => Duration::from_secs(60*60),
                         TimerDuration::C90 => Duration::from_secs(90*60),
                     };
-                    return Ok(new_duration);
-                    
+                    work_duration = new_duration;
+                    return Ok(work_duration);
                 },
                 Err(_) => {
-
+                    println!("다시 입력해주세요.");
                 }
-                
 
             }
            
         }
     }
 
-    // Ok(work_duration)
 }
