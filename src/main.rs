@@ -10,14 +10,15 @@ use tokio::io::{self, AsyncBufReadExt, BufReader};
 
 #[tokio::main]
 async fn main() {
-    let mut work_duration = Duration::from_secs(10);
+    // let mut work_duration = Duration::from_secs(10);
 
-    let mut timer = Timer::new(work_duration);
+    // let mut timer = Timer::new(work_duration);
 
-    
     let mut reader = BufReader::new(io::stdin());
     let mut input = String::new();
     
+    let mut timer_opt:Option<Timer> = None;
+
     loop {
         println!("timer-cli start");
         println!("메뉴 : 1)️timer 2)setting");
@@ -26,14 +27,25 @@ async fn main() {
         if reader.read_line(&mut input).await.is_ok() {
             match input.trim() {
                 "1" => {
+                    // let mut work_duration = Duration::from_secs(10);
+
+                    // let mut timer = Timer::new(Duration::from_secs(25*60));
+                    let mut timer = timer_opt.get_or_insert_with(|| Timer::new(Duration::from_secs(25*60)));
                     run_timer(&mut timer).await;
                 }
                 "2" => {
-                    let result = run_setting(work_duration).await;
+                    let result = run_setting().await;
                     match result {
                         Ok(new_duration) => {
-                            timer = Timer::new(new_duration);
-                        },
+                            // if let Some(ref mut timer) = timer_opt {
+                            if let Some(timer) = &mut timer_opt {
+                                timer.change_duration(new_duration);
+                                // timer_opt = Some(timer);
+                            } else {
+                                timer_opt= Some(Timer::new(new_duration));
+                            }
+                            
+                        }
                         Err(e) => {
                             println!("에러 : {:?}", e);
                         }
@@ -91,10 +103,6 @@ async fn run_timer(timer: &mut Timer) {
                             timer.reset();
                             println!("초기화됨: {}", timer);
                         },
-                        // "exit" => {
-                        //     println!("타이머 종료");
-                        //     break;
-                        // },
                         "quit" => {
                             println!("메뉴로 돌아가기");
                             timer.reset();
@@ -139,9 +147,9 @@ impl FromStr for TimerDuration {
     }
 }
 
-async fn run_setting(mut work_duration: Duration) -> Result<Duration, CustomError> {
+async fn run_setting() -> Result<Duration, CustomError> {
     println!("시간을 선택해주세요. (안할시 기본값 25분");
-    println!("1) 25분 2) 30분 3)60분");
+    println!("1) 30분 2) 60분 3) 90분");
 
     let mut reader = BufReader::new(io::stdin());
     let mut input = String::new();
@@ -158,20 +166,17 @@ async fn run_setting(mut work_duration: Duration) -> Result<Duration, CustomErro
             match input.trim().parse::<TimerDuration>() {
                 Ok(duration_enum) => {
                     let new_duration = match duration_enum {
-                        TimerDuration::A30 => Duration::from_secs(30*60),
-                        TimerDuration::B60 => Duration::from_secs(60*60),
-                        TimerDuration::C90 => Duration::from_secs(90*60),
+                        TimerDuration::A30 => Duration::from_secs(30 * 60),
+                        TimerDuration::B60 => Duration::from_secs(60 * 60),
+                        TimerDuration::C90 => Duration::from_secs(90 * 60),
                     };
-                    work_duration = new_duration;
-                    return Ok(work_duration);
-                },
+                    // work_duration = new_duration;
+                    return Ok(new_duration);
+                }
                 Err(_) => {
                     println!("다시 입력해주세요.");
                 }
-
             }
-           
         }
     }
-
 }

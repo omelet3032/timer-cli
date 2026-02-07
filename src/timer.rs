@@ -30,7 +30,17 @@ impl Timer {
             state: TimerState::Inactive,
         }
     }
+    /* 
+        pre generated timer's duration change method
+     */
+    pub fn change_duration(&mut self, new_duration:Duration) {
+        self.work_duration = new_duration 
+    }
 
+    // pub fn initialize_duration(&mut self) {
+    //     self.work_duration
+
+    // }
     pub fn start(&mut self) {
         match self.state {
             TimerState::Inactive => {
