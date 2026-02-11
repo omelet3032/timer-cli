@@ -15,18 +15,21 @@ async fn main() {
     let mut reader = BufReader::new(io::stdin());
     let mut input = String::new();
 
-    let mut timer_opt: Option<Timer> = None;
+    // let mut timer_opt: Option<Timer> = None;
+
+    let mut timer = Timer::new(Duration::from_secs(25 * 60));
+
+    println!("timer-cli start");
 
     loop {
-        println!("timer-cli start");
-        println!("메뉴 : 1)️timer 2)setting");
         input.clear();
+        println!("메뉴 : 1)️timer 2)setting");
 
         if reader.read_line(&mut input).await.is_ok() {
             match input.trim() {
                 "1" => {
-                    let mut timer =
-                        timer_opt.get_or_insert_with(|| Timer::new(Duration::from_secs(25 * 60)));
+                    // let mut timer =
+                    //     timer_opt.get_or_insert_with(|| Timer::new(Duration::from_secs(25 * 60)));
 
                     run_timer(&mut timer).await;
                 }
@@ -34,11 +37,13 @@ async fn main() {
                     let result = run_setting().await;
                     match result {
                         Ok(new_duration) => {
-                            if let Some(timer) = &mut timer_opt {
-                                timer.change_duration(new_duration);
-                            } else {
-                                timer_opt = Some(Timer::new(new_duration));
-                            }
+                            // if let Some(timer) = &mut timer_opt {
+                            //     timer.change_duration(new_duration);
+                            // } else {
+                            //     timer_opt = Some(Timer::new(new_duration));
+                            // }
+
+                            timer.change_duration(new_duration);
                         }
                         Err(e) => {
                             println!("{}", e);
@@ -54,8 +59,7 @@ async fn main() {
 }
 
 async fn run_timer(timer: &mut Timer) {
-    let stdin = io::stdin();
-    let mut reader = BufReader::new(stdin);
+    let mut reader = BufReader::new(io::stdin());
     let mut input = String::new();
 
     timer.start();
@@ -77,7 +81,7 @@ async fn run_timer(timer: &mut Timer) {
 
             res = reader.read_line(&mut input) => {
                 if res.is_ok() {
-                    // let command = input.trim();
+
                     let command = input.trim().parse::<TimerCommand>();
 
                     match command {
@@ -160,36 +164,32 @@ impl FromStr for TimerDuration {
 }
 
 async fn run_setting() -> Result<Duration, CustomError> {
-    println!("시간을 선택해주세요. (안할시 기본값 25분");
-    println!("1) 30분 2) 60분 3) 90분");
-
     let mut reader = BufReader::new(io::stdin());
     let mut input = String::new();
 
     loop {
+        println!("시간을 선택해주세요. (안할시 기본값 25분");
+        println!("1) 30분 2) 60분 3) 90분");
+
         input.clear();
 
         match reader.read_line(&mut input).await {
-            Ok(_) => {
-                match input.trim().parse::<TimerDuration>() {
-                    Ok(duration_enum) => {
-                        let new_duration = match duration_enum {
-                            TimerDuration::A30 => Duration::from_secs(30 * 60),
-                            TimerDuration::B60 => Duration::from_secs(60 * 60),
-                            TimerDuration::C90 => Duration::from_secs(90 * 60),
-                        };
-                        return Ok(new_duration);
-                    }
-                    Err(_) => {
-                        // return Err(CustomError::InputError);
-                        continue;
-                    }
+            Ok(_) => match input.trim().parse::<TimerDuration>() {
+                Ok(duration_enum) => {
+                    let new_duration = match duration_enum {
+                        TimerDuration::A30 => Duration::from_secs(30 * 60),
+                        TimerDuration::B60 => Duration::from_secs(60 * 60),
+                        TimerDuration::C90 => Duration::from_secs(90 * 60),
+                    };
+                    return Ok(new_duration);
                 }
-            }
+                Err(_) => {
+                    println!("다시 입력해주세요");
+                }
+            },
             Err(_) => {
                 return Err(CustomError::InputError);
             }
         }
-
     }
 }
