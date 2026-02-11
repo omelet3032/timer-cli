@@ -16,8 +16,8 @@ async fn main() {
 
     let mut reader = BufReader::new(io::stdin());
     let mut input = String::new();
-    
-    let mut timer_opt:Option<Timer> = None;
+
+    let mut timer_opt: Option<Timer> = None;
 
     loop {
         println!("timer-cli start");
@@ -30,7 +30,8 @@ async fn main() {
                     // let mut work_duration = Duration::from_secs(10);
 
                     // let mut timer = Timer::new(Duration::from_secs(25*60));
-                    let mut timer = timer_opt.get_or_insert_with(|| Timer::new(Duration::from_secs(25*60)));
+                    let mut timer =
+                        timer_opt.get_or_insert_with(|| Timer::new(Duration::from_secs(25 * 60)));
                     run_timer(&mut timer).await;
                 }
                 "2" => {
@@ -42,9 +43,8 @@ async fn main() {
                                 timer.change_duration(new_duration);
                                 // timer_opt = Some(timer);
                             } else {
-                                timer_opt= Some(Timer::new(new_duration));
+                                timer_opt = Some(Timer::new(new_duration));
                             }
-                            
                         }
                         Err(e) => {
                             println!("에러 : {:?}", e);
@@ -83,33 +83,62 @@ async fn run_timer(timer: &mut Timer) {
 
             res = reader.read_line(&mut input) => {
                 if res.is_ok() {
-                    let command = input.trim();
+                    // let command = input.trim();
+                    let command = input.trim().parse::<TimerCommand>();
 
                     match command {
-                        "pause" => {
-                            if timer.state == TimerState::Inactive {
-                                println!("Inactive : 일시정지를 할 수 없습니다");
-                            } else {
-                                timer.pause();
-                                println!("일시정지됨. (현재 시간: {})", timer);
-                            }
-                        },
-                        "start" => {
-                            timer.start();
-                            println!("다시 시작!");
-                            println!("{}", timer);
-                        },
-                        "reset" => {
-                            timer.reset();
+                        Ok(timercommand_enum) => {
+                            match timercommand_enum {
+                                TimerCommand::Start=> {
+                                     timer.start();
+                                     println!("다시 시작!");
+                                     println!("{}", timer);
+                                },
+                                TimerCommand::Pause => {
+                                    if timer.state == TimerState::Inactive {
+                                 println!("Inactive : 일시정지를 할 수 없습니다");
+                             } else {
+                                 timer.pause();
+                                 println!("일시정지됨. (현재 시간: {})", timer);
+                             }
+                                },
+                                TimerCommand::Reset => {
+                                timer.reset();
                             println!("초기화됨: {}", timer);
+                                },
+                            };
                         },
-                        "quit" => {
-                            println!("메뉴로 돌아가기");
-                            timer.reset();
-                            return;
+                        Err(_) => {
+                            println!("다시 입력해주세요");
+
                         }
-                        _ => println!("알 수 없는 명령: {}", command),
                     }
+
+                    // match command {
+                    //     "pause" => {
+                    //         if timer.state == TimerState::Inactive {
+                    //             println!("Inactive : 일시정지를 할 수 없습니다");
+                    //         } else {
+                    //             timer.pause();
+                    //             println!("일시정지됨. (현재 시간: {})", timer);
+                    //         }
+                    //     },
+                    //     "start" => {
+                    //         timer.start();
+                    //         println!("다시 시작!");
+                    //         println!("{}", timer);
+                    //     },
+                    //     "reset" => {
+                    //         timer.reset();
+                    //         println!("초기화됨: {}", timer);
+                    //     },
+                    //     "quit" => {
+                    //         println!("메뉴로 돌아가기");
+                    //         timer.reset();
+                    //         return;
+                    //     }
+                    //     _ => println!("알 수 없는 명령: {}", command),
+                    // }
                 }
                 input.clear();
             }

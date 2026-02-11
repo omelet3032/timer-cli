@@ -1,4 +1,5 @@
 use std::fmt::{Display, Formatter};
+use std::str::FromStr;
 use std::time::{Duration, Instant};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -22,6 +23,19 @@ pub enum TimerCommand {
     Reset,
 }
 
+impl FromStr for TimerCommand {
+    type Err =();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+       match s {
+            "start" => Ok(TimerCommand::Start), 
+            "pause" => Ok(TimerCommand::Pause),
+            "reset" => Ok(TimerCommand::Reset),
+            _ => Err(()),
+       } 
+    }
+}
+
 impl Timer {
     pub fn new(work_duration: Duration) -> Self {
         Self {
@@ -30,11 +44,11 @@ impl Timer {
             state: TimerState::Inactive,
         }
     }
-    /* 
-        pre generated timer's duration change method
-     */
-    pub fn change_duration(&mut self, new_duration:Duration) {
-        self.work_duration = new_duration 
+    /*
+       pre generated timer's duration change method
+    */
+    pub fn change_duration(&mut self, new_duration: Duration) {
+        self.work_duration = new_duration
     }
 
     // pub fn initialize_duration(&mut self) {
