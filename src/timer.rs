@@ -21,18 +21,20 @@ pub enum TimerCommand {
     Start, // 맨 처음 시작시 loop진입전 시작 명령
     Pause,
     Reset,
+    Quit,
 }
 
 impl FromStr for TimerCommand {
-    type Err =();
+    type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-       match s {
-            "start" => Ok(TimerCommand::Start), 
+        match s {
+            "start" => Ok(TimerCommand::Start),
             "pause" => Ok(TimerCommand::Pause),
             "reset" => Ok(TimerCommand::Reset),
+            "quit" => Ok(TimerCommand::Quit),
             _ => Err(()),
-       } 
+        }
     }
 }
 
@@ -73,12 +75,13 @@ impl Timer {
         if let TimerState::Working = self.state {
             let remaining = self.time_left();
             self.state = TimerState::Paused(remaining)
-        }
+        } 
+
     }
 
     pub fn reset(&mut self) {
         self.state = TimerState::Inactive;
-        self.deadline = Instant::now() + self.work_duration;
+        // self.deadline = Instant::now() + self.work_duration;
     }
 
     pub fn update(&mut self) {

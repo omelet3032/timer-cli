@@ -1,5 +1,7 @@
 mod timer;
 
+use std::fmt::Display;
+use std::fmt::Formatter;
 use std::str::FromStr;
 use std::time::Duration;
 
@@ -10,10 +12,6 @@ use tokio::io::{self, AsyncBufReadExt, BufReader};
 
 #[tokio::main]
 async fn main() {
-    // let mut work_duration = Duration::from_secs(10);
-
-    // let mut timer = Timer::new(work_duration);
-
     let mut reader = BufReader::new(io::stdin());
     let mut input = String::new();
 
@@ -27,27 +25,23 @@ async fn main() {
         if reader.read_line(&mut input).await.is_ok() {
             match input.trim() {
                 "1" => {
-                    // let mut work_duration = Duration::from_secs(10);
-
-                    // let mut timer = Timer::new(Duration::from_secs(25*60));
                     let mut timer =
                         timer_opt.get_or_insert_with(|| Timer::new(Duration::from_secs(25 * 60)));
+
                     run_timer(&mut timer).await;
                 }
                 "2" => {
                     let result = run_setting().await;
                     match result {
                         Ok(new_duration) => {
-                            // if let Some(ref mut timer) = timer_opt {
                             if let Some(timer) = &mut timer_opt {
                                 timer.change_duration(new_duration);
-                                // timer_opt = Some(timer);
                             } else {
                                 timer_opt = Some(Timer::new(new_duration));
                             }
                         }
                         Err(e) => {
-                            println!("에러 : {:?}", e);
+                            println!("{}", e);
                         }
                     }
                 }
@@ -96,16 +90,22 @@ async fn run_timer(timer: &mut Timer) {
                                 },
                                 TimerCommand::Pause => {
                                     if timer.state == TimerState::Inactive {
-                                 println!("Inactive : 일시정지를 할 수 없습니다");
-                             } else {
-                                 timer.pause();
-                                 println!("일시정지됨. (현재 시간: {})", timer);
-                             }
+                                        println!("Inactive : 일시정지를 할 수 없습니다");
+                                    } else {
+                                        timer.pause();
+                                        println!("일시정지됨. (현재 시간: {})", timer);
+                                    }
+
                                 },
                                 TimerCommand::Reset => {
-                                timer.reset();
-                            println!("초기화됨: {}", timer);
+                                    timer.reset();
+                                    println!("초기화됨: {}", timer);
                                 },
+                                TimerCommand::Quit => {
+                                      println!("메뉴로 돌아가기");
+                                      timer.reset();
+                                      return;
+                                }
                             };
                         },
                         Err(_) => {
@@ -114,31 +114,6 @@ async fn run_timer(timer: &mut Timer) {
                         }
                     }
 
-                    // match command {
-                    //     "pause" => {
-                    //         if timer.state == TimerState::Inactive {
-                    //             println!("Inactive : 일시정지를 할 수 없습니다");
-                    //         } else {
-                    //             timer.pause();
-                    //             println!("일시정지됨. (현재 시간: {})", timer);
-                    //         }
-                    //     },
-                    //     "start" => {
-                    //         timer.start();
-                    //         println!("다시 시작!");
-                    //         println!("{}", timer);
-                    //     },
-                    //     "reset" => {
-                    //         timer.reset();
-                    //         println!("초기화됨: {}", timer);
-                    //     },
-                    //     "quit" => {
-                    //         println!("메뉴로 돌아가기");
-                    //         timer.reset();
-                    //         return;
-                    //     }
-                    //     _ => println!("알 수 없는 명령: {}", command),
-                    // }
                 }
                 input.clear();
             }
@@ -155,6 +130,14 @@ async fn run_timer(timer: &mut Timer) {
 #[derive(Debug)]
 enum CustomError {
     InputError,
+}
+
+impl Display for CustomError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CustomError::InputError => write!(f, "잘못된 입력"),
+        }
+    }
 }
 
 enum TimerDuration {
@@ -186,26 +169,27 @@ async fn run_setting() -> Result<Duration, CustomError> {
     loop {
         input.clear();
 
-        if reader.read_line(&mut input).await.is_err() {
-            return Err(CustomError::InputError);
-        }
-
-        if reader.read_line(&mut input).await.is_ok() {
-            // parse()에 Result<F, F::Err>로 정의되어있다. 왜 이걸 제대로 보지 않았을까..
-            match input.trim().parse::<TimerDuration>() {
-                Ok(duration_enum) => {
-                    let new_duration = match duration_enum {
-                        TimerDuration::A30 => Duration::from_secs(30 * 60),
-                        TimerDuration::B60 => Duration::from_secs(60 * 60),
-                        TimerDuration::C90 => Duration::from_secs(90 * 60),
-                    };
-                    // work_duration = new_duration;
-                    return Ok(new_duration);
-                }
-                Err(_) => {
-                    println!("다시 입력해주세요.");
+        match reader.read_line(&mut input).await {
+            Ok(_) => {
+                match input.trim().parse::<TimerDuration>() {
+                    Ok(duration_enum) => {
+                        let new_duration = match duration_enum {
+                            TimerDuration::A30 => Duration::from_secs(30 * 60),
+                            TimerDuration::B60 => Duration::from_secs(60 * 60),
+                            TimerDuration::C90 => Duration::from_secs(90 * 60),
+                        };
+                        return Ok(new_duration);
+                    }
+                    Err(_) => {
+                        // return Err(CustomError::InputError);
+                        continue;
+                    }
                 }
             }
+            Err(_) => {
+                return Err(CustomError::InputError);
+            }
         }
+
     }
 }
