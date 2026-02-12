@@ -29,10 +29,10 @@ impl FromStr for TimerCommand {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "start" => Ok(TimerCommand::Start),
-            "pause" => Ok(TimerCommand::Pause),
-            "reset" => Ok(TimerCommand::Reset),
-            "quit" => Ok(TimerCommand::Quit),
+            "start" | "s"=> Ok(TimerCommand::Start),
+            "pause" | "p" => Ok(TimerCommand::Pause),
+            "reset" | "r"=> Ok(TimerCommand::Reset),
+            "quit" | "q"=> Ok(TimerCommand::Quit),
             _ => Err(()),
         }
     }
@@ -49,6 +49,15 @@ impl Timer {
     /*
        pre generated timer's duration change method
     */
+
+    pub fn is_working() {
+
+    }
+
+    pub fn is_inactive() {
+
+    }
+    
     pub fn change_duration(&mut self, new_duration: Duration) {
         self.work_duration = new_duration
     }
