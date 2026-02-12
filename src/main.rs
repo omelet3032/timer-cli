@@ -59,7 +59,7 @@ async fn main() {
 }
 
 async fn run_timer(timer: &mut Timer) {
-    let mut reader = BufReader::new(io::stdin());
+    let mut reader = BufReader::new(tokio::io::stdin());
     let mut input = String::new();
 
     timer.start();
@@ -78,45 +78,45 @@ async fn run_timer(timer: &mut Timer) {
                 }
 
             }
-
+            // 이 루프안에 있어야한ㅎ다 quit를 눌러도
             res = reader.read_line(&mut input) => {
                 if res.is_ok() {
+                    handle_timer_command(timer, &mut input);
+                    // let command = input.trim().parse::<TimerCommand>();
 
-                    let command = input.trim().parse::<TimerCommand>();
+                    // match command {
+                    //     Ok(timercommand_enum) => {
+                    //         match timercommand_enum {
+                    //             TimerCommand::Start=> {
+                    //                  timer.start();
+                    //                  println!("다시 시작!");
+                    //                  println!("{}", timer);
+                    //             },
+                    //             TimerCommand::Pause => {
+                    //                 if timer.state == TimerState::Inactive {
+                    //                     println!("Inactive : 일시정지를 할 수 없습니다");
+                    //                 } else {
+                    //                     timer.pause();
+                    //                     println!("일시정지됨. (현재 시간: {})", timer);
+                    //                 }
 
-                    match command {
-                        Ok(timercommand_enum) => {
-                            match timercommand_enum {
-                                TimerCommand::Start=> {
-                                     timer.start();
-                                     println!("다시 시작!");
-                                     println!("{}", timer);
-                                },
-                                TimerCommand::Pause => {
-                                    if timer.state == TimerState::Inactive {
-                                        println!("Inactive : 일시정지를 할 수 없습니다");
-                                    } else {
-                                        timer.pause();
-                                        println!("일시정지됨. (현재 시간: {})", timer);
-                                    }
+                    //             },
+                    //             TimerCommand::Reset => {
+                    //                 timer.reset();
+                    //                 println!("초기화됨: {}", timer);
+                    //             },
+                    //             TimerCommand::Quit => {
+                    //                   println!("메뉴로 돌아가기");
+                    //                   timer.reset();
+                    //                   return;
+                    //             }
+                    //         };
+                    //     },
+                    //     Err(_) => {
+                    //         println!("다시 입력해주세요");
 
-                                },
-                                TimerCommand::Reset => {
-                                    timer.reset();
-                                    println!("초기화됨: {}", timer);
-                                },
-                                TimerCommand::Quit => {
-                                      println!("메뉴로 돌아가기");
-                                      timer.reset();
-                                      return;
-                                }
-                            };
-                        },
-                        Err(_) => {
-                            println!("다시 입력해주세요");
-
-                        }
-                    }
+                    //     }
+                    // }
 
                 }
                 input.clear();
@@ -125,6 +125,69 @@ async fn run_timer(timer: &mut Timer) {
     }
 }
 
+fn handle_timer_command(timer: &mut Timer, input: &mut String) {
+    let command = input.trim().parse::<TimerCommand>();
+
+    if let Ok(timercommand_enum) = command {
+        match timercommand_enum {
+            TimerCommand::Start => {
+                timer.start();
+                println!("다시 시작!");
+                println!("{}", timer);
+            }
+            TimerCommand::Pause => {
+                if timer.state == TimerState::Inactive {
+                    println!("Inactive : 일시정지를 할 수 없습니다");
+                } else {
+                    timer.pause();
+                    println!("일시정지됨. (현재 시간: {})", timer);
+                }
+            }
+            TimerCommand::Reset => {
+                timer.reset();
+                println!("초기화됨: {}", timer);
+            }
+            TimerCommand::Quit => {
+                println!("메뉴로 돌아가기");
+                timer.reset();
+                // return;
+            }
+        };
+    }
+    // input.clear();
+    // match command {
+    //     Ok(timercommand_enum) => {
+    //         match timercommand_enum {
+    //             TimerCommand::Start => {
+    //                 timer.start();
+    //                 println!("다시 시작!");
+    //                 println!("{}", timer);
+    //             }
+    //             TimerCommand::Pause => {
+    //                 if timer.state == TimerState::Inactive {
+    //                     println!("Inactive : 일시정지를 할 수 없습니다");
+    //                 } else {
+    //                     timer.pause();
+    //                     println!("일시정지됨. (현재 시간: {})", timer);
+    //                 }
+    //             }
+    //             TimerCommand::Reset => {
+    //                 timer.reset();
+    //                 println!("초기화됨: {}", timer);
+    //             }
+    //             TimerCommand::Quit => {
+    //                 println!("메뉴로 돌아가기");
+    //                 timer.reset();
+    //                 // return;
+    //             }
+    //         };
+    //         // timercommand_enum
+    //     }
+    //     Err(_) => {
+    //         println!("다시 입력해주세요");
+    //     }
+    // };
+}
 // setting
 /*
     setting의 역할
