@@ -77,7 +77,7 @@ async fn run_timer(timer: &mut Timer, reader:&mut BufReader<tokio::io::Stdin>) {
 }
 
 fn handle_timer_command(timer: &mut Timer, input:&str) -> Option<TimerCommand> {
-    let command = input.trim().parse::<TimerCommand>().ok()?;
+    let command = parse_command::<TimerCommand>(input).ok()?;
 
     match command {
         TimerCommand::Start => {
@@ -111,6 +111,10 @@ fn handle_timer_command(timer: &mut Timer, input:&str) -> Option<TimerCommand> {
         }
         
     }
+}
+
+fn parse_command<T: FromStr>(input: &str) -> Result<T, ()> {
+    input.trim().parse().map_err(|_| ())
 }
 // setting
 /*
@@ -160,7 +164,7 @@ async fn run_setting(reader:&mut BufReader<tokio::io::Stdin>) -> Result<Duration
         input.clear();
 
         match reader.read_line(&mut input).await {
-            Ok(_) => match input.trim().parse::<TimerDuration>() {
+            Ok(_) => match parse_command::<TimerDuration>(&input) {
                 Ok(duration_enum) => {
                     let new_duration = match duration_enum {
                         TimerDuration::A30 => Duration::from_secs(30 * 60),
