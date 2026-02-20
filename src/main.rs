@@ -6,7 +6,6 @@ use std::str::FromStr;
 use std::time::Duration;
 use timer::Timer;
 use timer::TimerCommand;
-use timer::TimerState;
 use tokio::io::{self, AsyncBufReadExt, BufReader};
 
 #[tokio::main]
@@ -25,10 +24,10 @@ async fn main() {
         if reader.read_line(&mut input).await.is_ok() {
             match input.trim() {
                 "1" => {
-                    run_timer(&mut timer).await;
+                    run_timer(&mut timer, &mut reader).await;
                 }
                 "2" => {
-                    let result = run_setting().await;
+                    let result = run_setting(&mut reader).await;
                     match result {
                         Ok(new_duration) => {
                             timer.change_duration(new_duration);
@@ -46,8 +45,7 @@ async fn main() {
     }
 }
 
-async fn run_timer(timer: &mut Timer) {
-    let mut reader = BufReader::new(tokio::io::stdin());
+async fn run_timer(timer: &mut Timer, reader:&mut BufReader<tokio::io::Stdin>) {
     let mut input = String::new();
 
     timer.start();
@@ -64,12 +62,11 @@ async fn run_timer(timer: &mut Timer) {
                 if timer.is_inactive() {
                     println!("타이머가 종료되었습니다");
                 }
-
             }
 
             res = reader.read_line(&mut input) => {
                 if res.is_ok() {
-                    if let Some(TimerCommand::Quit) = handle_timer_command(timer, &mut input) {
+                    if let Some(TimerCommand::Quit) = handle_timer_command(timer, &input) {
                         break;
                     }
                 }
@@ -79,7 +76,7 @@ async fn run_timer(timer: &mut Timer) {
     }
 }
 
-fn handle_timer_command(timer: &mut Timer, input: &mut String) -> Option<TimerCommand> {
+fn handle_timer_command(timer: &mut Timer, input:&str) -> Option<TimerCommand> {
     let command = input.trim().parse::<TimerCommand>().ok()?;
 
     match command {
@@ -153,8 +150,7 @@ impl FromStr for TimerDuration {
     }
 }
 
-async fn run_setting() -> Result<Duration, CustomError> {
-    let mut reader = BufReader::new(io::stdin());
+async fn run_setting(reader:&mut BufReader<tokio::io::Stdin>) -> Result<Duration, CustomError> {
     let mut input = String::new();
 
     loop {

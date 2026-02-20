@@ -57,7 +57,7 @@ impl Timer {
         matches!(self.state, TimerState::Inactive)
     }
     pub fn change_duration(&mut self, new_duration: Duration) {
-        self.work_duration = new_duration
+        self.work_duration = new_duration 
     }
 
     // pub fn initialize_duration(&mut self) {
