@@ -56,12 +56,12 @@ async fn run_timer(timer: &mut Timer) {
     loop {
         tokio::select! {
 
-            _ = tokio::time::sleep(Duration::from_secs(1)), if timer.state == TimerState::Working => {
+            _ = tokio::time::sleep(Duration::from_secs(1)), if timer.is_working() => {
                 println!("{}", timer);
 
                 timer.update();
 
-                if timer.state == TimerState::Inactive {
+                if timer.is_inactive() {
                     println!("타이머가 종료되었습니다");
                 }
 
@@ -84,7 +84,7 @@ fn handle_timer_command(timer: &mut Timer, input: &mut String) -> Option<TimerCo
 
     match command {
         TimerCommand::Start => {
-            if timer.state == TimerState::Working {
+            if timer.is_working() {
                 println!("작동중입니다");
             } else {
                 timer.start();
@@ -94,7 +94,7 @@ fn handle_timer_command(timer: &mut Timer, input: &mut String) -> Option<TimerCo
             None
         }
         TimerCommand::Pause => {
-            if timer.state == TimerState::Inactive {
+            if timer.is_inactive() {
                 println!("Inactive : 일시정지를 할 수 없습니다");
             } else {
                 timer.pause();
