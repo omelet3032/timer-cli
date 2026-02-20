@@ -5,8 +5,8 @@ use std::time::{Duration, Instant};
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Timer {
     pub work_duration: Duration,
-    pub deadline: Instant,
-    pub state: TimerState,
+    deadline: Instant,
+    state: TimerState,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -49,15 +49,13 @@ impl Timer {
     /*
        pre generated timer's duration change method
     */
-
-    pub fn is_working() {
-
+    pub fn is_working(&self) -> bool {
+        matches!(self.state, TimerState::Working)
     }
 
-    pub fn is_inactive() {
-
+    pub fn is_inactive(&self) -> bool {
+        matches!(self.state, TimerState::Inactive)
     }
-    
     pub fn change_duration(&mut self, new_duration: Duration) {
         self.work_duration = new_duration
     }
