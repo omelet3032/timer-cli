@@ -45,7 +45,7 @@ async fn main() {
     }
 }
 
-async fn run_timer(timer: &mut Timer, reader:&mut BufReader<tokio::io::Stdin>) {
+async fn run_timer(timer: &mut Timer, reader: &mut BufReader<tokio::io::Stdin>) {
     let mut input = String::new();
 
     timer.start();
@@ -76,7 +76,7 @@ async fn run_timer(timer: &mut Timer, reader:&mut BufReader<tokio::io::Stdin>) {
     }
 }
 
-fn handle_timer_command(timer: &mut Timer, input:&str) -> Option<TimerCommand> {
+fn handle_timer_command(timer: &mut Timer, input: &str) -> Option<TimerCommand> {
     let command = parse_command::<TimerCommand>(input).ok()?;
 
     match command {
@@ -109,7 +109,6 @@ fn handle_timer_command(timer: &mut Timer, input:&str) -> Option<TimerCommand> {
             println!("메뉴로 돌아가기");
             Some(TimerCommand::Quit)
         }
-        
     }
 }
 
@@ -154,7 +153,7 @@ impl FromStr for TimerDuration {
     }
 }
 
-async fn run_setting(reader:&mut BufReader<tokio::io::Stdin>) -> Result<Duration, CustomError> {
+async fn run_setting(reader: &mut BufReader<tokio::io::Stdin>) -> Result<Duration, CustomError> {
     let mut input = String::new();
 
     loop {
