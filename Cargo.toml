@@ -3,6 +3,7 @@ name = "timer-cli"
 version = "0.1.0"
 edition = "2024"
 description = "timer for cli"
+license = "MIT"
 
 [dependencies]
 tokio = { version = "1.49.0", features = ["full"]}

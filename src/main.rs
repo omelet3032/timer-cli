@@ -2,6 +2,8 @@ mod timer;
 
 use std::fmt::Display;
 use std::fmt::Formatter;
+use std::io::Write;
+use std::io::stdout;
 use std::str::FromStr;
 use std::time::Duration;
 use timer::Timer;
@@ -49,14 +51,16 @@ async fn run_timer(timer: &mut Timer, reader: &mut BufReader<tokio::io::Stdin>) 
     let mut input = String::new();
 
     timer.start();
-    println!("{}", timer);
+    
+    print!("\r⏳ 현재 남은 시간: {}   ", timer); // \r로 커서를 맨 앞으로 보냄
+    stdout().flush().unwrap();
 
     loop {
         tokio::select! {
 
             _ = tokio::time::sleep(Duration::from_secs(1)), if timer.is_working() => {
-                println!("{}", timer);
-
+                print!("\r⏳ 현재 남은 시간: {}   ", timer); // \r로 커서를 맨 앞으로 보냄
+                stdout().flush().unwrap();
                 timer.update();
 
                 if timer.is_inactive() {

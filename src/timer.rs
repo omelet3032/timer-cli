@@ -46,9 +46,7 @@ impl Timer {
             state: TimerState::Inactive,
         }
     }
-    /*
-       pre generated timer's duration change method
-    */
+    
     pub fn is_working(&self) -> bool {
         matches!(self.state, TimerState::Working)
     }
@@ -56,25 +54,22 @@ impl Timer {
     pub fn is_inactive(&self) -> bool {
         matches!(self.state, TimerState::Inactive)
     }
+
     pub fn change_duration(&mut self, new_duration: Duration) {
         self.work_duration = new_duration 
     }
 
-    // pub fn initialize_duration(&mut self) {
-    //     self.work_duration
-
-    // }
     pub fn start(&mut self) {
         match self.state {
             TimerState::Inactive => {
                 self.deadline = Instant::now() + self.work_duration;
                 self.state = TimerState::Working;
-            }
+            },
             TimerState::Paused(remaining) => {
                 self.deadline = Instant::now() + remaining;
                 self.state = TimerState::Working;
-            }
-            _ => {}
+            },
+            _ => {},
         }
     }
 
@@ -83,12 +78,10 @@ impl Timer {
             let remaining = self.time_left();
             self.state = TimerState::Paused(remaining)
         } 
-
     }
 
     pub fn reset(&mut self) {
         self.state = TimerState::Inactive;
-        // self.deadline = Instant::now() + self.work_duration;
     }
 
     pub fn update(&mut self) {
