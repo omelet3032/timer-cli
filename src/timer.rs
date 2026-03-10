@@ -29,10 +29,10 @@ impl FromStr for TimerCommand {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "start" | "s"=> Ok(TimerCommand::Start),
+            "start" | "s" => Ok(TimerCommand::Start),
             "pause" | "p" => Ok(TimerCommand::Pause),
-            "reset" | "r"=> Ok(TimerCommand::Reset),
-            "quit" | "q"=> Ok(TimerCommand::Quit),
+            "reset" | "r" => Ok(TimerCommand::Reset),
+            "quit" | "q" => Ok(TimerCommand::Quit),
             _ => Err(()),
         }
     }
@@ -46,7 +46,7 @@ impl Timer {
             state: TimerState::Inactive,
         }
     }
-    
+
     pub fn is_working(&self) -> bool {
         matches!(self.state, TimerState::Working)
     }
@@ -56,41 +56,54 @@ impl Timer {
     }
 
     pub fn change_duration(&mut self, new_duration: Duration) {
-        self.work_duration = new_duration 
+        self.work_duration = new_duration
     }
 
     pub fn start(&mut self) {
-        match self.state {
+        let now = Instant::now();
+
+        let duration = match self.state {
+            TimerState::Inactive => self.work_duration,
+            TimerState::Paused(remaining) => remaining,
+            TimerState::Working => return,
+        };
+
+        self.deadline = now + duration;
+        self.state = TimerState::Working;
+
+        /*         match self.state {
             TimerState::Inactive => {
                 self.deadline = Instant::now() + self.work_duration;
-                self.state = TimerState::Working;
-            },
+                // self.state = TimerState::Working;
+            }
             TimerState::Paused(remaining) => {
                 self.deadline = Instant::now() + remaining;
-                self.state = TimerState::Working;
-            },
-            _ => {},
+                // self.state = TimerState::Working;
+            }
+            _ => {}
         }
+        self.state = TimerState::Working; */
     }
 
     pub fn pause(&mut self) {
         if let TimerState::Working = self.state {
             let remaining = self.time_left();
             self.state = TimerState::Paused(remaining)
-        } 
+        }
     }
 
     pub fn reset(&mut self) {
         self.state = TimerState::Inactive;
     }
 
-    pub fn update(&mut self) {
+    // for dioxus
+    /*   pub fn update(&mut self) {
         if let TimerState::Working = self.state {
             if self.time_left().is_zero() {
                 self.state = TimerState::Inactive;
             }
         }
-    }
+    } */
 
     fn time_left(&self) -> Duration {
         self.deadline

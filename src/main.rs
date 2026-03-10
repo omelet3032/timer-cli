@@ -61,7 +61,7 @@ async fn run_timer(timer: &mut Timer, reader: &mut BufReader<tokio::io::Stdin>) 
             _ = tokio::time::sleep(Duration::from_secs(1)), if timer.is_working() => {
                 print!("\r⏳ 현재 남은 시간: {}   ", timer); // \r로 커서를 맨 앞으로 보냄
                 stdout().flush().unwrap();
-                timer.update();
+                // timer.update();
 
                 if timer.is_inactive() {
                     println!("타이머가 종료되었습니다");
