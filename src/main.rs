@@ -51,32 +51,47 @@ async fn run_timer(timer: &mut Timer, reader: &mut BufReader<tokio::io::Stdin>) 
     let mut input = String::new();
 
     timer.start();
-    
+
     print!("\r⏳ 현재 남은 시간: {}   ", timer); // \r로 커서를 맨 앞으로 보냄
     stdout().flush().unwrap();
 
+    let mut tick = tokio::time::interval(Duration::from_secs(1));
     loop {
         tokio::select! {
 
-            _ = tokio::time::sleep(Duration::from_secs(1)), if timer.is_working() => {
-                print!("\r⏳ 현재 남은 시간: {}   ", timer); // \r로 커서를 맨 앞으로 보냄
-                stdout().flush().unwrap();
-                // timer.update();
+        /*
+            tokio::time::sleep_until(deadline).await;
+            timer.finish();
+        */
+/*                    _ = tokio::time::sleep(Duration::from_secs(1)), if timer.is_working() => {
+                       print!("\r⏳ 현재 남은 시간: {}   ", timer); // \r로 커서를 맨 앞으로 보냄
+                       stdout().flush().unwrap();
+                       // timer.update();
 
-                if timer.is_inactive() {
-                    println!("타이머가 종료되었습니다");
-                }
-            }
+                    //    timer.finished();
 
-            res = reader.read_line(&mut input) => {
-                if res.is_ok() {
-                    if let Some(TimerCommand::Quit) = handle_timer_command(timer, &input) {
-                        break;
-                    }
-                }
-                input.clear();
-            }
-        }
+                       if timer.is_inactive() {
+                           println!("타이머가 종료되었습니다");
+                       }
+                   } */
+
+                   _ = tick.tick() => {
+                       print!("\r⏳ 현재 남은 시간: {}   ", timer); // \r로 커서를 맨 앞으로 보냄
+                       stdout().flush().unwrap();
+                       if timer.is_inactive() {
+                           println!("타이머가 종료되었습니다");
+                       }
+                   }
+
+                   res = reader.read_line(&mut input) => {
+                       if res.is_ok() {
+                           if let Some(TimerCommand::Quit) = handle_timer_command(timer, &input) {
+                               break;
+                           }
+                       }
+                       input.clear();
+                   }
+               }
     }
 }
 

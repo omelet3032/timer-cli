@@ -47,6 +47,12 @@ impl Timer {
         }
     }
 
+    pub fn finished(&mut self) {
+        if self.time_left().is_zero() {
+            self.state = TimerState::Inactive;
+        }
+    }
+    
     pub fn is_working(&self) -> bool {
         matches!(self.state, TimerState::Working)
     }
