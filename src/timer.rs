@@ -47,6 +47,10 @@ impl Timer {
         }
     }
 
+    pub fn deadline(&self) -> Instant {
+        self.deadline
+    }
+
     pub fn finished(&mut self) {
         if self.time_left().is_zero() {
             self.state = TimerState::Inactive;

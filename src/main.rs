@@ -15,7 +15,8 @@ async fn main() {
     let mut reader = BufReader::new(io::stdin());
     let mut input = String::new();
 
-    let mut timer = Timer::new(Duration::from_secs(25 * 60));
+    // let mut timer = Timer::new(Duration::from_secs(25 * 60));
+    let mut timer = Timer::new(Duration::from_secs(5));
 
     println!("timer-cli start");
 
@@ -63,24 +64,16 @@ async fn run_timer(timer: &mut Timer, reader: &mut BufReader<tokio::io::Stdin>) 
             tokio::time::sleep_until(deadline).await;
             timer.finish();
         */
-/*                    _ = tokio::time::sleep(Duration::from_secs(1)), if timer.is_working() => {
+                   _ = tick.tick(), if timer.is_working() => {
                        print!("\r⏳ 현재 남은 시간: {}   ", timer); // \r로 커서를 맨 앞으로 보냄
                        stdout().flush().unwrap();
-                       // timer.update();
+                    }
+                    
+                    _ = tokio::time::sleep_until(timer.deadline().into()), if timer.is_working() => {
+                        timer.finished();
+                        print!("\r⏳ 현재 남은 시간: 00:00"); // \r로 커서를 맨 앞으로 보냄
+                        println!("\n타이머가 종료되었습니다");
 
-                    //    timer.finished();
-
-                       if timer.is_inactive() {
-                           println!("타이머가 종료되었습니다");
-                       }
-                   } */
-
-                   _ = tick.tick() => {
-                       print!("\r⏳ 현재 남은 시간: {}   ", timer); // \r로 커서를 맨 앞으로 보냄
-                       stdout().flush().unwrap();
-                       if timer.is_inactive() {
-                           println!("타이머가 종료되었습니다");
-                       }
                    }
 
                    res = reader.read_line(&mut input) => {
