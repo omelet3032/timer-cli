@@ -51,12 +51,10 @@ impl Timer {
         self.deadline
     }
 
-    pub fn finished(&mut self) {
-        if self.time_left().is_zero() {
-            self.state = TimerState::Inactive;
-        }
+    pub fn deactivate(&mut self) {
+        self.state = TimerState::Inactive;
     }
-    
+
     pub fn is_working(&self) -> bool {
         matches!(self.state, TimerState::Working)
     }
@@ -80,19 +78,6 @@ impl Timer {
 
         self.deadline = now + duration;
         self.state = TimerState::Working;
-
-        /*         match self.state {
-            TimerState::Inactive => {
-                self.deadline = Instant::now() + self.work_duration;
-                // self.state = TimerState::Working;
-            }
-            TimerState::Paused(remaining) => {
-                self.deadline = Instant::now() + remaining;
-                // self.state = TimerState::Working;
-            }
-            _ => {}
-        }
-        self.state = TimerState::Working; */
     }
 
     pub fn pause(&mut self) {

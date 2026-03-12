@@ -60,31 +60,26 @@ async fn run_timer(timer: &mut Timer, reader: &mut BufReader<tokio::io::Stdin>) 
     loop {
         tokio::select! {
 
-        /*
-            tokio::time::sleep_until(deadline).await;
-            timer.finish();
-        */
-                   _ = tick.tick(), if timer.is_working() => {
-                       print!("\r⏳ 현재 남은 시간: {}   ", timer); // \r로 커서를 맨 앞으로 보냄
-                       stdout().flush().unwrap();
+            _ = tick.tick(), if timer.is_working() => {
+                print!("\r⏳ 현재 남은 시간: {}   ", timer); // \r로 커서를 맨 앞으로 보냄
+                stdout().flush().unwrap();
+             }
+
+             _ = tokio::time::sleep_until(timer.deadline().into()), if timer.is_working() => {
+                 timer.deactivate();
+                 println!("\n타이머가 종료되었습니다");
+
+            }
+
+            res = reader.read_line(&mut input) => {
+                if res.is_ok() {
+                    if let Some(TimerCommand::Quit) = handle_timer_command(timer, &input) {
+                        break;
                     }
-                    
-                    _ = tokio::time::sleep_until(timer.deadline().into()), if timer.is_working() => {
-                        timer.finished();
-                        print!("\r⏳ 현재 남은 시간: 00:00"); // \r로 커서를 맨 앞으로 보냄
-                        println!("\n타이머가 종료되었습니다");
-
-                   }
-
-                   res = reader.read_line(&mut input) => {
-                       if res.is_ok() {
-                           if let Some(TimerCommand::Quit) = handle_timer_command(timer, &input) {
-                               break;
-                           }
-                       }
-                       input.clear();
-                   }
-               }
+                }
+                input.clear();
+            }
+        }
     }
 }
 
