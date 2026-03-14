@@ -57,15 +57,19 @@ async fn run_timer(timer: &mut Timer, reader: &mut BufReader<tokio::io::Stdin>) 
     stdout().flush().unwrap();
 
     let mut tick = tokio::time::interval(Duration::from_secs(1));
+    
     loop {
         tokio::select! {
 
-            _ = tick.tick(), if timer.is_working() => {
+            // _ = tick.tick(), if timer.is_working() => {
+            _ = tick.tick() => {
                 print!("\r⏳ 현재 남은 시간: {}   ", timer); // \r로 커서를 맨 앞으로 보냄
                 stdout().flush().unwrap();
              }
 
              _ = tokio::time::sleep_until(timer.deadline().into()), if timer.is_working() => {
+                print!("\r⏳ 현재 남은 시간: {}   ", timer); // \r로 커서를 맨 앞으로 보냄
+                stdout().flush().unwrap();
                  timer.deactivate();
                  println!("\n타이머가 종료되었습니다");
 
@@ -87,13 +91,16 @@ fn handle_timer_command(timer: &mut Timer, input: &str) -> Option<TimerCommand> 
     let command = parse_command::<TimerCommand>(input).ok()?;
 
     match command {
+        // start와 restart를 구분할 필요가 있을듯
+        // 타이머가 끝난 상황에서 s는 start, pause상태에서 s는 restart다.
         TimerCommand::Start => {
             if timer.is_working() {
                 println!("작동중입니다");
             } else {
                 timer.start();
-                println!("다시 시작!");
-                println!("{}", timer);
+                // tick.reset();
+                // println!("다시 시작!");
+                // println!("{}", timer);
             }
             None
         }
@@ -128,15 +135,32 @@ fn parse_command<T: FromStr>(input: &str) -> Result<T, ()> {
         work_duration을 사용자가 입력으로 설정한후 그 값을 main()에 전달
 */
 
-#[derive(Debug)]
-enum CustomError {
-    InputError,
+#[derive(Clone, Debug)]
+pub struct Error {
+   kind: ErrorKind, 
 }
 
-impl Display for CustomError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            CustomError::InputError => write!(f, "잘못된 입력"),
+impl Error {
+    pub(crate) fn input<E: std::error::Error>(err: E) -> Error {
+        Error {kind: ErrorKind::Input(err.to_string())}
+    }
+
+    pub fn kind(&self) -> &ErrorKind {
+        &self.kind
+    }
+}
+
+#[derive(Clone, Debug)]
+#[non_exhaustive]
+pub enum ErrorKind {
+    Input(String),
+}
+
+
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self.kind {
+            ErrorKind::Input(ref s) => write!(f, "{}", s),
         }
     }
 }
@@ -160,7 +184,7 @@ impl FromStr for TimerDuration {
     }
 }
 
-async fn run_setting(reader: &mut BufReader<tokio::io::Stdin>) -> Result<Duration, CustomError> {
+async fn run_setting(reader: &mut BufReader<tokio::io::Stdin>) -> Result<Duration, TimerError> {
     let mut input = String::new();
 
     loop {
@@ -184,7 +208,7 @@ async fn run_setting(reader: &mut BufReader<tokio::io::Stdin>) -> Result<Duratio
                 }
             },
             Err(_) => {
-                return Err(CustomError::InputError);
+                return Err(TimerError::InputError);
             }
         }
     }

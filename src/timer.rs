@@ -13,6 +13,7 @@ pub struct Timer {
 pub enum TimerState {
     Working,
     Inactive,
+    Finished,
     Paused(Duration),
 }
 
@@ -52,6 +53,7 @@ impl Timer {
     }
 
     pub fn deactivate(&mut self) {
+        // self.state = TimerState::Finished;
         self.state = TimerState::Inactive;
     }
 
@@ -72,6 +74,7 @@ impl Timer {
 
         let duration = match self.state {
             TimerState::Inactive => self.work_duration,
+            TimerState::Finished => Duration::ZERO,
             TimerState::Paused(remaining) => remaining,
             TimerState::Working => return,
         };
@@ -112,6 +115,7 @@ impl Display for Timer {
         let time_left = match self.state {
             TimerState::Paused(remaining) => remaining,
             TimerState::Inactive => self.work_duration,
+            TimerState::Finished => Duration::ZERO,
             _ => self.time_left(),
         };
 
