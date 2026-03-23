@@ -1,7 +1,6 @@
 mod timer;
+mod error;
 
-use std::fmt::Display;
-use std::fmt::Formatter;
 use std::io::Write;
 use std::io::stdout;
 use std::str::FromStr;
@@ -9,6 +8,7 @@ use std::time::Duration;
 use timer::Timer;
 use timer::TimerCommand;
 use tokio::io::{self, AsyncBufReadExt, BufReader};
+
 
 #[tokio::main]
 async fn main() {
@@ -88,7 +88,8 @@ async fn run_timer(timer: &mut Timer, reader: &mut BufReader<tokio::io::Stdin>) 
 }
 
 fn handle_timer_command(timer: &mut Timer, input: &str) -> Option<TimerCommand> {
-    let command = parse_command::<TimerCommand>(input).ok()?;
+    // let command = parse_command::<TimerCommand>(input).ok()?;
+        let command = input.trim().parse::<TimerCommand>().ok()?;
 
     match command {
         // start와 restart를 구분할 필요가 있을듯
@@ -126,44 +127,17 @@ fn handle_timer_command(timer: &mut Timer, input: &str) -> Option<TimerCommand> 
     }
 }
 
-fn parse_command<T: FromStr>(input: &str) -> Result<T, ()> {
-    input.trim().parse().map_err(|_| ())
-}
-// setting
+// fn parse_command<T: FromStr>(input: &str) -> Result<T, crate::error::Error> {
+// // fn parse_command<T: FromStr>(input: &str) -> Result<T, String> {
+//     // input.trim().parse().map_err(|_| "실패".to_string())
+//     input.trim().parse().map_err(|e| e)
+// }
+// // setting
 /*
     setting의 역할
         work_duration을 사용자가 입력으로 설정한후 그 값을 main()에 전달
 */
 
-#[derive(Clone, Debug)]
-pub struct Error {
-   kind: ErrorKind, 
-}
-
-impl Error {
-    pub(crate) fn input<E: std::error::Error>(err: E) -> Error {
-        Error {kind: ErrorKind::Input(err.to_string())}
-    }
-
-    pub fn kind(&self) -> &ErrorKind {
-        &self.kind
-    }
-}
-
-#[derive(Clone, Debug)]
-#[non_exhaustive]
-pub enum ErrorKind {
-    Input(String),
-}
-
-
-impl std::fmt::Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self.kind {
-            ErrorKind::Input(ref s) => write!(f, "{}", s),
-        }
-    }
-}
 
 enum TimerDuration {
     A30,
@@ -172,29 +146,33 @@ enum TimerDuration {
 }
 
 impl FromStr for TimerDuration {
-    type Err = ();
+    type Err = String;
+    // type Err = &str;
+    // type crate::error::Error = ();
 
+    // fn from_str(s: &str) -> Result<Self, Self::Err> {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "1" => Ok(TimerDuration::A30),
             "2" => Ok(TimerDuration::B60),
             "3" => Ok(TimerDuration::C90),
-            _ => Err(()),
+            _ => Err("Not Supported".to_string()),
         }
     }
 }
 
-async fn run_setting(reader: &mut BufReader<tokio::io::Stdin>) -> Result<Duration, TimerError> {
+async fn run_setting(reader: &mut BufReader<tokio::io::Stdin>) -> Result<Duration, std::io::Error> {
     let mut input = String::new();
 
     loop {
-        println!("시간을 선택해주세요. (안할시 기본값 25분");
+        println!("시간을 선택해주세요. (기본값 25분)");
         println!("1) 30분 2) 60분 3) 90분");
 
         input.clear();
 
         match reader.read_line(&mut input).await {
-            Ok(_) => match parse_command::<TimerDuration>(&input) {
+            // Ok(_) => match parse_command::<TimerDuration>(&input) {
+            Ok(_) => match input.trim().parse::<TimerDuration>() {
                 Ok(duration_enum) => {
                     let new_duration = match duration_enum {
                         TimerDuration::A30 => Duration::from_secs(30 * 60),
@@ -202,13 +180,18 @@ async fn run_setting(reader: &mut BufReader<tokio::io::Stdin>) -> Result<Duratio
                         TimerDuration::C90 => Duration::from_secs(90 * 60),
                     };
                     return Ok(new_duration);
+                    // Ok(new_duration)
                 }
-                Err(_) => {
-                    println!("다시 입력해주세요");
+                Err(e) => {
+                    eprintln!("{}, 입력값 : {}", e, input.trim());
                 }
+
             },
-            Err(_) => {
-                return Err(TimerError::InputError);
+            Err(e) => {
+                // return Err(std::io::Error::new(std::io::ErrorKind::I, error));
+                return Err(e);
+                // return Err(Error::input(e));
+                // return Err(crate::error::Error::input(e));
             }
         }
     }
