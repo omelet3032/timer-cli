@@ -1,5 +1,5 @@
-mod timer;
 mod error;
+mod timer;
 
 use std::io::Write;
 use std::io::stdout;
@@ -8,7 +8,6 @@ use std::time::Duration;
 use timer::Timer;
 use timer::TimerCommand;
 use tokio::io::{self, AsyncBufReadExt, BufReader};
-
 
 #[tokio::main]
 async fn main() {
@@ -57,12 +56,11 @@ async fn run_timer(timer: &mut Timer, reader: &mut BufReader<tokio::io::Stdin>) 
     stdout().flush().unwrap();
 
     let mut tick = tokio::time::interval(Duration::from_secs(1));
-    
+
     loop {
         tokio::select! {
 
-            // _ = tick.tick(), if timer.is_working() => {
-            _ = tick.tick() => {
+            _ = tick.tick(), if timer.is_working() => {
                 print!("\r⏳ 현재 남은 시간: {}   ", timer); // \r로 커서를 맨 앞으로 보냄
                 stdout().flush().unwrap();
              }
@@ -89,7 +87,7 @@ async fn run_timer(timer: &mut Timer, reader: &mut BufReader<tokio::io::Stdin>) 
 
 fn handle_timer_command(timer: &mut Timer, input: &str) -> Option<TimerCommand> {
     // let command = parse_command::<TimerCommand>(input).ok()?;
-        let command = input.trim().parse::<TimerCommand>().ok()?;
+    let command = input.trim().parse::<TimerCommand>().ok()?;
 
     match command {
         // start와 restart를 구분할 필요가 있을듯
@@ -138,7 +136,6 @@ fn handle_timer_command(timer: &mut Timer, input: &str) -> Option<TimerCommand> 
         work_duration을 사용자가 입력으로 설정한후 그 값을 main()에 전달
 */
 
-
 enum TimerDuration {
     A30,
     B60,
@@ -170,29 +167,44 @@ async fn run_setting(reader: &mut BufReader<tokio::io::Stdin>) -> Result<Duratio
 
         input.clear();
 
-        match reader.read_line(&mut input).await {
-            // Ok(_) => match parse_command::<TimerDuration>(&input) {
-            Ok(_) => match input.trim().parse::<TimerDuration>() {
-                Ok(duration_enum) => {
-                    let new_duration = match duration_enum {
-                        TimerDuration::A30 => Duration::from_secs(30 * 60),
-                        TimerDuration::B60 => Duration::from_secs(60 * 60),
-                        TimerDuration::C90 => Duration::from_secs(90 * 60),
-                    };
-                    return Ok(new_duration);
-                    // Ok(new_duration)
-                }
-                Err(e) => {
-                    eprintln!("{}, 입력값 : {}", e, input.trim());
-                }
+        reader.read_line(&mut input).await?;
 
-            },
+        let duration_enum = match input.trim().parse::<TimerDuration>() {
+            Ok(v) => v,
             Err(e) => {
-                // return Err(std::io::Error::new(std::io::ErrorKind::I, error));
-                return Err(e);
-                // return Err(Error::input(e));
-                // return Err(crate::error::Error::input(e));
+                eprintln!("{}, 입력값 : {}", e, input.trim());
+                continue;
             }
-        }
+        };
+
+        let new_duration = match duration_enum {
+            TimerDuration::A30 => Duration::from_secs(30 * 60),
+            TimerDuration::B60 => Duration::from_secs(60 * 60),
+            TimerDuration::C90 => Duration::from_secs(90 * 60),
+        };
+
+        return Ok(new_duration);
+        // Ok(_) => match parse_command::<TimerDuration>(&input) {
+        // Ok(_) => match input.trim().parse::<TimerDuration>() {
+        //     Ok(duration_enum) => {
+        //         let new_duration = match duration_enum {
+        //             TimerDuration::A30 => Duration::from_secs(30 * 60),
+        //             TimerDuration::B60 => Duration::from_secs(60 * 60),
+        //             TimerDuration::C90 => Duration::from_secs(90 * 60),
+        //         };
+        //         return Ok(new_duration);
+        //         // Ok(new_duration)
+        //     }
+        //     Err(e) => {
+        //         eprintln!("{}, 입력값 : {}", e, input.trim());
+        //     }
+
+        // },
+        // Err(e) => {
+        //     // return Err(std::io::Error::new(std::io::ErrorKind::I, error));
+        //     return Err(e);
+        //     // return Err(Error::input(e));
+        //     // return Err(crate::error::Error::input(e));
+        // }
     }
 }
