@@ -184,27 +184,5 @@ async fn run_setting(reader: &mut BufReader<tokio::io::Stdin>) -> Result<Duratio
         };
 
         return Ok(new_duration);
-        // Ok(_) => match parse_command::<TimerDuration>(&input) {
-        // Ok(_) => match input.trim().parse::<TimerDuration>() {
-        //     Ok(duration_enum) => {
-        //         let new_duration = match duration_enum {
-        //             TimerDuration::A30 => Duration::from_secs(30 * 60),
-        //             TimerDuration::B60 => Duration::from_secs(60 * 60),
-        //             TimerDuration::C90 => Duration::from_secs(90 * 60),
-        //         };
-        //         return Ok(new_duration);
-        //         // Ok(new_duration)
-        //     }
-        //     Err(e) => {
-        //         eprintln!("{}, 입력값 : {}", e, input.trim());
-        //     }
-
-        // },
-        // Err(e) => {
-        //     // return Err(std::io::Error::new(std::io::ErrorKind::I, error));
-        //     return Err(e);
-        //     // return Err(Error::input(e));
-        //     // return Err(crate::error::Error::input(e));
-        // }
     }
 }
