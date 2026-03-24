@@ -3,11 +3,12 @@ mod timer;
 
 use std::io::Write;
 use std::io::stdout;
+use std::ops::ControlFlow;
 use std::str::FromStr;
 use std::time::Duration;
-use timer::Timer;
-use timer::TimerCommand;
 use tokio::io::{self, AsyncBufReadExt, BufReader};
+
+use timer::{Timer, TimerCommand, TimerDuration};
 
 #[tokio::main]
 async fn main() {
@@ -63,19 +64,23 @@ async fn run_timer(timer: &mut Timer, reader: &mut BufReader<tokio::io::Stdin>) 
             _ = tick.tick(), if timer.is_working() => {
                 print!("\r⏳ 현재 남은 시간: {}   ", timer); // \r로 커서를 맨 앞으로 보냄
                 stdout().flush().unwrap();
+               
              }
 
              _ = tokio::time::sleep_until(timer.deadline().into()), if timer.is_working() => {
                 print!("\r⏳ 현재 남은 시간: {}   ", timer); // \r로 커서를 맨 앞으로 보냄
                 stdout().flush().unwrap();
-                 timer.deactivate();
-                 println!("\n타이머가 종료되었습니다");
+                timer.deactivate();
+                println!("\n타이머가 종료되었습니다");
 
             }
 
-            res = reader.read_line(&mut input) => {
-                if res.is_ok() {
-                    if let Some(TimerCommand::Quit) = handle_timer_command(timer, &input) {
+            result = reader.read_line(&mut input) => {
+                if result.is_ok() {
+                    // if let Some(TimerCommand::Quit) = handle_timer_command(timer, &input) {
+                    //     break;
+                    // }
+                    if handle_timer_command(timer, &input).is_break() {
                         break;
                     }
                 }
@@ -85,23 +90,21 @@ async fn run_timer(timer: &mut Timer, reader: &mut BufReader<tokio::io::Stdin>) 
     }
 }
 
-fn handle_timer_command(timer: &mut Timer, input: &str) -> Option<TimerCommand> {
-    // let command = parse_command::<TimerCommand>(input).ok()?;
-    let command = input.trim().parse::<TimerCommand>().ok()?;
+fn handle_timer_command(timer: &mut Timer, input: &str) -> ControlFlow<()> {
+    
+    let Ok(command) = input.trim().parse::<TimerCommand>() else {
+        println!("다시 입력해주세요. [입력값 : {}]", input.trim());
+        return ControlFlow::Continue(());
+    };
 
     match command {
-        // start와 restart를 구분할 필요가 있을듯
-        // 타이머가 끝난 상황에서 s는 start, pause상태에서 s는 restart다.
+        
         TimerCommand::Start => {
             if timer.is_working() {
                 println!("작동중입니다");
             } else {
                 timer.start();
-                // tick.reset();
-                // println!("다시 시작!");
-                // println!("{}", timer);
             }
-            None
         }
         TimerCommand::Pause => {
             if timer.is_inactive() {
@@ -110,53 +113,21 @@ fn handle_timer_command(timer: &mut Timer, input: &str) -> Option<TimerCommand> 
                 timer.pause();
                 println!("일시정지됨. (현재 시간: {})", timer);
             }
-            None
         }
         TimerCommand::Reset => {
             timer.reset();
             println!("초기화됨: {}", timer);
-            None
         }
         TimerCommand::Quit => {
             timer.reset();
             println!("메뉴로 돌아가기");
-            Some(TimerCommand::Quit)
+            return ControlFlow::Break(());
         }
     }
+
+    ControlFlow::Continue(())
 }
 
-// fn parse_command<T: FromStr>(input: &str) -> Result<T, crate::error::Error> {
-// // fn parse_command<T: FromStr>(input: &str) -> Result<T, String> {
-//     // input.trim().parse().map_err(|_| "실패".to_string())
-//     input.trim().parse().map_err(|e| e)
-// }
-// // setting
-/*
-    setting의 역할
-        work_duration을 사용자가 입력으로 설정한후 그 값을 main()에 전달
-*/
-
-enum TimerDuration {
-    A30,
-    B60,
-    C90,
-}
-
-impl FromStr for TimerDuration {
-    type Err = String;
-    // type Err = &str;
-    // type crate::error::Error = ();
-
-    // fn from_str(s: &str) -> Result<Self, Self::Err> {
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "1" => Ok(TimerDuration::A30),
-            "2" => Ok(TimerDuration::B60),
-            "3" => Ok(TimerDuration::C90),
-            _ => Err("Not Supported".to_string()),
-        }
-    }
-}
 
 async fn run_setting(reader: &mut BufReader<tokio::io::Stdin>) -> Result<Duration, std::io::Error> {
     let mut input = String::new();

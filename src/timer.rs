@@ -13,7 +13,6 @@ pub struct Timer {
 pub enum TimerState {
     Working,
     Inactive,
-    Finished,
     Paused(Duration),
 }
 
@@ -26,7 +25,7 @@ pub enum TimerCommand {
 }
 
 impl FromStr for TimerCommand {
-    type Err = ();
+    type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
@@ -34,11 +33,29 @@ impl FromStr for TimerCommand {
             "pause" | "p" => Ok(TimerCommand::Pause),
             "reset" | "r" => Ok(TimerCommand::Reset),
             "quit" | "q" => Ok(TimerCommand::Quit),
-            _ => Err(()),
+            _ => Err("잘못된 입력".to_string()),
         }
     }
 }
 
+pub enum TimerDuration {
+    A30,
+    B60,
+    C90,
+}
+
+impl FromStr for TimerDuration {
+    type Err = String;
+    
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "1" => Ok(TimerDuration::A30),
+            "2" => Ok(TimerDuration::B60),
+            "3" => Ok(TimerDuration::C90),
+            _ => Err("Not Supported".to_string()),
+        }
+    }
+}
 impl Timer {
     pub fn new(work_duration: Duration) -> Self {
         Self {
@@ -53,7 +70,6 @@ impl Timer {
     }
 
     pub fn deactivate(&mut self) {
-        // self.state = TimerState::Finished;
         self.state = TimerState::Inactive;
     }
 
@@ -74,7 +90,6 @@ impl Timer {
 
         let duration = match self.state {
             TimerState::Inactive => self.work_duration,
-            TimerState::Finished => Duration::ZERO,
             TimerState::Paused(remaining) => remaining,
             TimerState::Working => return,
         };
@@ -115,7 +130,6 @@ impl Display for Timer {
         let time_left = match self.state {
             TimerState::Paused(remaining) => remaining,
             TimerState::Inactive => self.work_duration,
-            TimerState::Finished => Duration::ZERO,
             _ => self.time_left(),
         };
 
