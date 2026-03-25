@@ -48,38 +48,34 @@ async fn main() {
     }
 }
 
+fn display_timer_msg(timer: &mut Timer) {
+    print!("\r⏳ 현재 남은 시간: {}   ", timer);
+    stdout().flush().unwrap();
+}
+
 async fn run_timer(timer: &mut Timer, reader: &mut BufReader<tokio::io::Stdin>) {
     let mut input = String::new();
 
     timer.start();
 
-    print!("\r⏳ 현재 남은 시간: {}   ", timer); // \r로 커서를 맨 앞으로 보냄
-    stdout().flush().unwrap();
-
+    display_timer_msg(timer);
     let mut tick = tokio::time::interval(Duration::from_secs(1));
 
     loop {
         tokio::select! {
 
             _ = tick.tick(), if timer.is_working() => {
-                print!("\r⏳ 현재 남은 시간: {}   ", timer); // \r로 커서를 맨 앞으로 보냄
-                stdout().flush().unwrap();
-               
+                display_timer_msg(timer);
              }
 
              _ = tokio::time::sleep_until(timer.deadline().into()), if timer.is_working() => {
-                print!("\r⏳ 현재 남은 시간: {}   ", timer); // \r로 커서를 맨 앞으로 보냄
-                stdout().flush().unwrap();
+                display_timer_msg(timer);
                 timer.deactivate();
                 println!("\n타이머가 종료되었습니다");
-
             }
 
             result = reader.read_line(&mut input) => {
                 if result.is_ok() {
-                    // if let Some(TimerCommand::Quit) = handle_timer_command(timer, &input) {
-                    //     break;
-                    // }
                     if handle_timer_command(timer, &input).is_break() {
                         break;
                     }
@@ -91,16 +87,13 @@ async fn run_timer(timer: &mut Timer, reader: &mut BufReader<tokio::io::Stdin>) 
 }
 
 fn handle_timer_command(timer: &mut Timer, input: &str) -> ControlFlow<()> {
-    
     let Ok(command) = input.trim().parse::<TimerCommand>() else {
-        // let err = crate::error::Error::msg(format!("[입력값 : {}]", input.trim()));
         let err = crate::error::Error::msg(input.trim());
         eprintln!("{}", err);
         return ControlFlow::Continue(());
     };
 
     match command {
-        
         TimerCommand::Start => {
             if timer.is_working() {
                 println!("작동중입니다");
@@ -129,7 +122,6 @@ fn handle_timer_command(timer: &mut Timer, input: &str) -> ControlFlow<()> {
 
     ControlFlow::Continue(())
 }
-
 
 async fn run_setting(reader: &mut BufReader<tokio::io::Stdin>) -> Result<Duration, std::io::Error> {
     let mut input = String::new();

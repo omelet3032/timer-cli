@@ -56,6 +56,7 @@ impl FromStr for TimerDuration {
         }
     }
 }
+
 impl Timer {
     pub fn new(work_duration: Duration) -> Self {
         Self {
@@ -125,7 +126,7 @@ impl Timer {
     }
 }
 
-impl Display for Timer {
+impl std::fmt::Display for Timer {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let time_left = match self.state {
             TimerState::Paused(remaining) => remaining,
