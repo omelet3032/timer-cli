@@ -93,7 +93,9 @@ async fn run_timer(timer: &mut Timer, reader: &mut BufReader<tokio::io::Stdin>) 
 fn handle_timer_command(timer: &mut Timer, input: &str) -> ControlFlow<()> {
     
     let Ok(command) = input.trim().parse::<TimerCommand>() else {
-        println!("다시 입력해주세요. [입력값 : {}]", input.trim());
+        // let err = crate::error::Error::msg(format!("[입력값 : {}]", input.trim()));
+        let err = crate::error::Error::msg(input.trim());
+        eprintln!("{}", err);
         return ControlFlow::Continue(());
     };
 

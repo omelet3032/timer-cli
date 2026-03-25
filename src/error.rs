@@ -13,6 +13,12 @@ impl Error {
     pub fn kind(&self) -> &ErrorKind {
         &self.kind
     }
+
+    pub(crate) fn msg<T: std::fmt::Display>(msg: T) -> Self {
+        Error {
+            kind: ErrorKind::Input(msg.to_string())
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -32,7 +38,7 @@ impl std::error::Error for Error {
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match &self.kind {
-            ErrorKind::Input(s) => write!(f, "{}", s),
+            ErrorKind::Input(s) => write!(f, "잘못된 입력 : {}", s),
         }
     }
 }
