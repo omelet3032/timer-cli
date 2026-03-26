@@ -1,10 +1,9 @@
-mod error;
+// mod error;
 mod timer;
 
 use std::io::Write;
 use std::io::stdout;
 use std::ops::ControlFlow;
-use std::str::FromStr;
 use std::time::Duration;
 use tokio::io::{self, AsyncBufReadExt, BufReader};
 
@@ -15,7 +14,6 @@ async fn main() {
     let mut reader = BufReader::new(io::stdin());
     let mut input = String::new();
 
-    // let mut timer = Timer::new(Duration::from_secs(25 * 60));
     let mut timer = Timer::new(Duration::from_secs(5));
 
     println!("timer-cli start");
@@ -87,11 +85,26 @@ async fn run_timer(timer: &mut Timer, reader: &mut BufReader<tokio::io::Stdin>) 
 }
 
 fn handle_timer_command(timer: &mut Timer, input: &str) -> ControlFlow<()> {
-    let Ok(command) = input.trim().parse::<TimerCommand>() else {
-        let err = crate::error::Error::msg(input.trim());
-        eprintln!("{}", err);
-        return ControlFlow::Continue(());
+    // // let Ok(command) = input.trim().parse::<TimerCommand>() else {
+    //     let err = crate::error::Error::msg(input.trim());
+    //     eprintln!("{}", err);
+    //     return ControlFlow::Continue(());
+    // };
+
+    let command = match input.trim().parse::<TimerCommand>() {
+        Ok(cmd) => cmd,
+        Err(e) => {
+            eprintln!("{}", e);
+            return ControlFlow::Continue(());
+        }
     };
+
+    // 반환 타입이 맞지 않는다. 
+    // 추후 Result<>타입으로 변경후 main에서 에러 처리하는 방안을 고려해보자.
+    // let command = input.trim().parse::<TimerCommand>().map_err(|e| {
+    //     eprintln!("{}", e);
+    //     ControlFlow::Continue(());
+    // })?;
 
     match command {
         TimerCommand::Start => {

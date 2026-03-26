@@ -19,12 +19,15 @@ impl Error {
             kind: ErrorKind::Input(msg.to_string())
         }
     }
+
+    
 }
 
 #[derive(Clone, Debug)]
 #[non_exhaustive]
 pub enum ErrorKind {
     Input(String),
+    InvaildCommand{input: String},
 }
 
 impl std::error::Error for Error {
@@ -38,7 +41,7 @@ impl std::error::Error for Error {
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match &self.kind {
-            ErrorKind::Input(s) => write!(f, "잘못된 입력 : {}", s),
+            ErrorKind::Input(s) => write!(f, "{}", s),
         }
     }
 }

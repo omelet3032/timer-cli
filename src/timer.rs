@@ -25,15 +25,15 @@ pub enum TimerCommand {
 }
 
 impl FromStr for TimerCommand {
-    type Err = String;
+    type Err = std::io::Error;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
+    fn from_str(command: &str) -> Result<Self, Self::Err> {
+        match command {
             "start" | "s" => Ok(TimerCommand::Start),
             "pause" | "p" => Ok(TimerCommand::Pause),
             "reset" | "r" => Ok(TimerCommand::Reset),
             "quit" | "q" => Ok(TimerCommand::Quit),
-            _ => Err("잘못된 입력".to_string()),
+            _ => Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, format!("지원하지 않는 명령어 : {}", command))),
         }
     }
 }
