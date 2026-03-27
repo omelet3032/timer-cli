@@ -20,7 +20,7 @@ async fn main() {
 
     loop {
         input.clear();
-        println!("메뉴 : 1)️timer 2)setting");
+        println!("메뉴 : 1)️timer 2)setting 3)exit");
 
         if reader.read_line(&mut input).await.is_ok() {
             match input.trim() {
@@ -38,12 +38,16 @@ async fn main() {
                         }
                     }
                 }
+                "3" => {
+                    break;
+                }
                 _ => {
                     println!("다시 입력해주세요");
                 }
             }
         }
     }
+    println!("bye~")
 }
 
 fn display_timer_msg(timer: &mut Timer) {
@@ -148,17 +152,20 @@ async fn run_setting(reader: &mut BufReader<tokio::io::Stdin>) -> Result<Duratio
         reader.read_line(&mut input).await?;
 
         let duration_enum = match input.trim().parse::<TimerDuration>() {
-            Ok(v) => v,
+            Ok(v) => {
+                println!("'{}'을 선택하셨습니다.", v);
+                v
+            },
             Err(e) => {
-                eprintln!("{}, 입력값 : {}", e, input.trim());
+                eprintln!("{}", e);
                 continue;
             }
         };
 
         let new_duration = match duration_enum {
-            TimerDuration::A30 => Duration::from_secs(30 * 60),
-            TimerDuration::B60 => Duration::from_secs(60 * 60),
-            TimerDuration::C90 => Duration::from_secs(90 * 60),
+            TimerDuration::M30 => Duration::from_secs(30 * 60),
+            TimerDuration::M60 => Duration::from_secs(60 * 60),
+            TimerDuration::M90 => Duration::from_secs(90 * 60),
         };
 
         return Ok(new_duration);

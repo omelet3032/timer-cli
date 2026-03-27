@@ -33,26 +33,41 @@ impl FromStr for TimerCommand {
             "pause" | "p" => Ok(TimerCommand::Pause),
             "reset" | "r" => Ok(TimerCommand::Reset),
             "quit" | "q" => Ok(TimerCommand::Quit),
-            _ => Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, format!("지원하지 않는 명령어 : {}", command))),
+            _ => Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                format!("지원하지 않는 명령어 : {}", command),
+            )),
         }
     }
 }
 
 pub enum TimerDuration {
-    A30,
-    B60,
-    C90,
+    M30,
+    M60,
+    M90,
 }
 
+impl std::fmt::Display for TimerDuration {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TimerDuration::M30 => write!(f, "30분"),
+            TimerDuration::M60 => write!(f, "60분"),
+            TimerDuration::M90 => write!(f, "90분"),
+        }
+    }
+}
 impl FromStr for TimerDuration {
-    type Err = String;
-    
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "1" => Ok(TimerDuration::A30),
-            "2" => Ok(TimerDuration::B60),
-            "3" => Ok(TimerDuration::C90),
-            _ => Err("Not Supported".to_string()),
+    type Err = std::io::Error;
+
+    fn from_str(duration: &str) -> Result<Self, Self::Err> {
+        match duration {
+            "1" => Ok(TimerDuration::M30),
+            "2" => Ok(TimerDuration::M60),
+            "3" => Ok(TimerDuration::M90),
+            _ => Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                format!("지원하지 않는 명령어 : {}", duration),
+            )),
         }
     }
 }
